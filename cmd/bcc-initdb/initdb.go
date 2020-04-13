@@ -24,42 +24,41 @@ func createTables(db *sql.DB, reset bool) (err error) {
 
 	exec(`create table if not exists users (
 		id int not null,
-		registered timestamp not null,
-		created timestamp not null,
-		updated timestamp not null,
+		registered_at timestamptz not null default current_timestamp,
+		created_at timestamptz not null default current_timestamp,
+		updated_at timestamptz not null default current_timestamp,
 		email text not null,
 		name text not null,
-		github text,
+		github_username text,
 		primary key (id)
 	);`)
 	exec(`create table if not exists posts (
 		id int not null,
 		user_id int not null,
-		posted_at timestamp not null,
-		created_at timestamp not null default current_timestamp,
-		updated timestamp,
+		posted_at timestamptz not null default current_timestamp,
+		created_at timestamptz not null default current_timestamp,
+		updated_at timestamptz not null default current_timestamp,
 		title text not null,
 		body text not null,
 		primary key (id)
 	);`)
 	exec(`create table if not exists comments (
 		id int not null,
-		userid int not null,
-		posted timestamp not null,
-		created timestamp not null,
-		updated timestamp,
-		parentid int not null,
-		title text not null,
-		body text not null,
+		user_id int not null,
+		posted_at timestamptz not null default current_timestamp,
+		created_at timestamptz not null default current_timestamp,
+		updated_at timestamptz default current_timestamp,
+		post_id int not null,
+		message text not null,
 		primary key (id)
 	);`)
 	exec(`create table if not exists ratings (
 		id int not null,
-		rated timestamp not null,
-		created timestamp not null,
-		updated timestamp not null,
-		userid int not null,
-		raterid int not null,
+		rated_at timestamptz not null default current_timestamp,
+		created_at timestamptz not null default current_timestamp,
+		updated_at timestamptz not null default current_timestamp,
+		user_id int not null,
+		rater_id int not null,
 		rating int not null,
 		primary key (id)
 	);`)
@@ -68,10 +67,10 @@ func createTables(db *sql.DB, reset bool) (err error) {
 }
 
 func main() {
-	addr := flag.String("addr", "localhost", "Database address.")
-	user := flag.String("user", "postgres", "Database user.")
-	pw := flag.String("pass", "", "Database password.")
-	name := flag.String("db", "bcc", "Database name.")
+	addr := flag.String("dbaddr", "localhost", "Database address.")
+	user := flag.String("dbuser", "postgres", "Database user.")
+	pw := flag.String("dbpass", "", "Database password.")
+	name := flag.String("dbname", "bcc", "Database name.")
 	reset := flag.Bool("reset", false, "Reset all tables.")
 	flag.Parse()
 
