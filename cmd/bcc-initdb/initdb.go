@@ -14,6 +14,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// createTables creates all of the required tables and sets all of the
+// column options that are necessary. If reset is true, it drops any
+// existing tables first.
 func createTables(db *sql.DB, reset bool) (err error) {
 	exec := func(stmt string, args ...interface{}) {
 		if err != nil {
@@ -27,7 +30,7 @@ func createTables(db *sql.DB, reset bool) (err error) {
 		exec(`DROP TABLE IF EXISTS users, posts, comments, ratings;`)
 	}
 
-	exec(`create TABLE IF NOT EXISTS users (
+	exec(`CREATE TABLE IF NOT EXISTS users (
 		id int NOT NULL,
 		registered_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
@@ -37,7 +40,7 @@ func createTables(db *sql.DB, reset bool) (err error) {
 		github_username text,
 		PRIMARY KEY (id)
 	);`)
-	exec(`create TABLE IF NOT EXISTS posts (
+	exec(`CREATE TABLE IF NOT EXISTS posts (
 		id int NOT NULL,
 		user_id int NOT NULL,
 		posted_at timestamptz NOT NULL DEFAULT current_timestamp,
@@ -47,7 +50,7 @@ func createTables(db *sql.DB, reset bool) (err error) {
 		body text NOT NULL,
 		PRIMARY KEY (id)
 	);`)
-	exec(`create TABLE IF NOT EXISTS comments (
+	exec(`CREATE TABLE IF NOT EXISTS comments (
 		id int NOT NULL,
 		user_id int NOT NULL,
 		posted_at timestamptz NOT NULL DEFAULT current_timestamp,
@@ -57,7 +60,7 @@ func createTables(db *sql.DB, reset bool) (err error) {
 		message text NOT NULL,
 		PRIMARY KEY (id)
 	);`)
-	exec(`create TABLE IF NOT EXISTS ratings (
+	exec(`CREATE TABLE IF NOT EXISTS ratings (
 		id int NOT NULL,
 		rated_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
@@ -71,6 +74,21 @@ func createTables(db *sql.DB, reset bool) (err error) {
 	return err
 }
 
+// insertData reads the CSV file at path and inserts each row of the
+// file into the given table. It expects the first row of the CSV to
+// be a list of the columns that correspond to the columns of the CSV
+// file. In other words, the file
+//
+//    col1,col2
+//    an,example
+//    and,another
+//
+// will attempt to insert "an" and "and" into the column "col1" and
+// "example" and "another" into the column "col2".
+//
+// As this entire program is strictly an admin tool, any data being
+// inserted by this tool is assumed to be trusted. In particular, the
+// column names from the CSV file are manually inserted into the SQL.
 func insertData(db *sql.DB, table, path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -119,6 +137,8 @@ func insertData(db *sql.DB, table, path string) error {
 	return nil
 }
 
+// dataFlag is an implementation of flag.Value that reads a
+// comma-separated list of key=value pairs.
 type dataFlag map[string]string
 
 func (df dataFlag) String() string {
