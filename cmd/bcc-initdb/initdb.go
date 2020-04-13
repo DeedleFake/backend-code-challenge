@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 
 	_ "github.com/lib/pq"
 )
@@ -53,7 +54,7 @@ func createTables(db *sql.DB, reset bool) (err error) {
 	exec(`CREATE TABLE IF NOT EXISTS comments (
 		id int NOT NULL,
 		user_id int NOT NULL,
-		posted_at timestamptz NOT NULL DEFAULT current_timestamp,
+		commented_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
 		updated_at timestamptz DEFAULT current_timestamp,
 		post_id int NOT NULL,
@@ -97,6 +98,7 @@ func insertData(db *sql.DB, table, path string) error {
 	defer file.Close()
 
 	r := csv.NewReader(file)
+	r.LazyQuotes = true
 	cols, err := r.Read()
 	if err != nil {
 		return fmt.Errorf("read columns: %w", err)
@@ -200,10 +202,17 @@ func main() {
 		log.Fatalf("Failed to create tables: %v", err)
 	}
 
+	var wg sync.WaitGroup
 	for table, path := range data {
-		err = insertData(db, table, path)
-		if err != nil {
-			log.Fatalf("Failed to insert data into %q: %v", table, err)
-		}
+		wg.Add(1)
+		go func(table, path string) {
+			defer wg.Done()
+
+			err := insertData(db, table, path)
+			if err != nil {
+				log.Printf("Failed to insert data into %q: %v", table, err)
+			}
+		}(table, path)
 	}
+	wg.Wait()
 }
