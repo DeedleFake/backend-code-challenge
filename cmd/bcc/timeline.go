@@ -11,6 +11,22 @@ import (
 )
 
 func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error {
+	type resultPost struct {
+		ID        int       `json:"id"`
+		PostedAt  time.Time `json:"posted_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Title     string    `json:"title"`
+		Body      string    `json:"body"`
+	}
+
+	type resultComment struct {
+		ID          int       `json:"id"`
+		CommentedAt time.Time `json:"commented_at"`
+		UpdatedAt   time.Time `json:"updated_at"`
+		PostID      int       `json:"post_id"`
+		Message     string    `json:"message"`
+	}
+
 	q := struct {
 		UserID int `query:"user_id"`
 		Start  int `query:"start"`
@@ -63,22 +79,6 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 		return fmt.Errorf("select posts: %w", err)
 	}
 	defer rows.Close()
-
-	type resultPost struct {
-		ID        int       `json:"id"`
-		PostedAt  time.Time `json:"posted_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Title     string    `json:"title"`
-		Body      string    `json:"body"`
-	}
-
-	type resultComment struct {
-		ID          int       `json:"id"`
-		CommentedAt time.Time `json:"commented_at"`
-		UpdatedAt   time.Time `json:"updated_at"`
-		PostID      int       `json:"post_id"`
-		Message     string    `json:"message"`
-	}
 
 	results := []interface{}{}
 	for rows.Next() {
