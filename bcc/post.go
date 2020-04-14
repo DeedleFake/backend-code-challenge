@@ -27,6 +27,10 @@ func GetPostByID(db *sqlx.DB, id int) (Post, error) {
 	return post, err
 }
 
+func CreatePost(db *sqlx.DB, userID int, title, body string) error {
+	panic("Not implemented.")
+}
+
 // Comment mirrors a row of the comments table.
 type Comment struct {
 	ID          int       `db:"id" json:"id"`
