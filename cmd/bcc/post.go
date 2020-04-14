@@ -82,5 +82,36 @@ func handleGetPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error
 }
 
 func handlePostPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error {
-	return errors.New("not implemented")
+	var q struct {
+		UserID *int   `json:"user_id"`
+		Title  string `json:"title"`
+		Body   string `json:"body"`
+	}
+	d := json.NewDecoder(req.Body)
+	err := d.Decode(&q)
+	if err != nil {
+		return APIUserError{
+			Status: http.StatusBadRequest,
+			Err:    fmt.Errorf("failed to parse body: %w", err),
+		}
+	}
+	if q.UserID == nil {
+		return APIUserError{
+			Status: http.StatusBadRequest,
+			Err:    errors.New("user_id must be present"),
+		}
+	}
+	if q.Title == "" {
+		return APIUserError{
+			Status: http.StatusBadRequest,
+			Err:    errors.New("title must not be blank"),
+		}
+	}
+
+	err = bcc.CreatePost(db, *q.UserID, q.Title, q.Body)
+	if err != nil {
+		return fmt.Errorf("create post: %w", err)
+	}
+
+	return nil
 }

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
+	"github.com/DeedleFake/backend-code-challenge/bcc"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -26,69 +26,26 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 		}
 	}
 
-	if q.Limit > 50 {
+	if q.Limit > 100 {
 		return APIUserError{
 			Status: http.StatusBadRequest,
-			Err:    errors.New("limit must not be larger than 50"),
+			Err:    errors.New("limit must not be larger than 100"),
 		}
 	}
 
-	rows, err := db.Queryx(`
-		SELECT
-			'post' AS type,
-			posted_at,
-			updated_at,
-			id,
-			title,
-			body,
-			NULL AS post_id,
-			NULL AS message
-		FROM posts
-			WHERE user_id=$1
-		UNION ALL
-		SELECT
-			'comment' AS type,
-			commented_at AS posted_at,
-			updated_at,
-			id,
-			NULL AS title,
-			NULL AS body,
-			post_id,
-			message
-		FROM comments
-			WHERE user_id=$1
-		ORDER BY posted_at DESC
-		LIMIT $2 OFFSET $3
-	;`, q.UserID, q.Limit, q.Start)
+	entries, err := bcc.GetTimeline(db, q.UserID, q.Start, q.Limit)
 	if err != nil {
-		return fmt.Errorf("select posts: %w", err)
+		return fmt.Errorf("get timeline: %w", err)
 	}
-	defer rows.Close()
+	defer entries.Close()
 
-	results := []interface{}{}
-	for rows.Next() {
-		var result struct {
-			Type string `db:"type" json:"type"`
-
-			PostedAt  time.Time `db:"posted_at" json:"posted_at"`
-			UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
-			ID        int       `db:"id" json:"id"`
-
-			Title *string `db:"title" json:"title,omitempty"`
-			Body  *string `db:"body" json:"body,omitempty"`
-
-			PostID  *int    `db:"post_id" json:"post_id,omitempty"`
-			Message *string `db:"message" json:"message,omitempty"`
-		}
-		err = rows.StructScan(&result)
-		if err != nil {
-			return fmt.Errorf("failed to scan row: %w", err)
-		}
-
-		results = append(results, result)
+	var results []bcc.TimelineEntry
+	for entries.Next() {
+		entry := entries.Current().(bcc.TimelineEntry)
+		results = append(results, entry)
 	}
-	if err := rows.Err(); err != nil {
-		return fmt.Errorf("failed to advance rows: %w", err)
+	if err := entries.Err(); err != nil {
+		return fmt.Errorf("iteration: %w", err)
 	}
 
 	e := json.NewEncoder(rw)
