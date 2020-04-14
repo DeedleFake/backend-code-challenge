@@ -11,22 +11,6 @@ import (
 )
 
 func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error {
-	type resultPost struct {
-		ID        int       `json:"id"`
-		PostedAt  time.Time `json:"posted_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Title     string    `json:"title"`
-		Body      string    `json:"body"`
-	}
-
-	type resultComment struct {
-		ID          int       `json:"id"`
-		CommentedAt time.Time `json:"commented_at"`
-		UpdatedAt   time.Time `json:"updated_at"`
-		PostID      int       `json:"post_id"`
-		Message     string    `json:"message"`
-	}
-
 	q := struct {
 		UserID int `query:"user_id"`
 		Start  int `query:"start"`
@@ -60,6 +44,7 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 			NULL AS post_id,
 			NULL AS message
 		FROM posts
+			WHERE user_id=$1
 		UNION ALL
 		SELECT
 			'comment' AS type,
@@ -71,7 +56,7 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 			post_id,
 			message
 		FROM comments
-		WHERE user_id=$1
+			WHERE user_id=$1
 		ORDER BY posted_at DESC
 		LIMIT $2 OFFSET $3
 	;`, q.UserID, q.Limit, q.Start)
@@ -83,45 +68,24 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 	results := []interface{}{}
 	for rows.Next() {
 		var result struct {
-			Type string `db:"type"`
+			Type string `db:"type" json:"type"`
 
-			PostedAt  time.Time `db:"posted_at"`
-			UpdatedAt time.Time `db:"updated_at"`
-			ID        int       `db:"id"`
+			PostedAt  time.Time `db:"posted_at" json:"posted_at"`
+			UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+			ID        int       `db:"id" json:"id"`
 
-			Title *string `db:"title"`
-			Body  *string `db:"body"`
+			Title *string `db:"title" json:"title,omitempty"`
+			Body  *string `db:"body" json:"body,omitempty"`
 
-			PostID  *int    `db:"post_id"`
-			Message *string `db:"message"`
+			PostID  *int    `db:"post_id" json:"post_id,omitempty"`
+			Message *string `db:"message" json:"message,omitempty"`
 		}
 		err = rows.StructScan(&result)
 		if err != nil {
 			return fmt.Errorf("failed to scan row: %w", err)
 		}
 
-		switch result.Type {
-		case "post":
-			results = append(results, resultPost{
-				ID:        result.ID,
-				PostedAt:  result.PostedAt,
-				UpdatedAt: result.UpdatedAt,
-				Title:     *result.Title,
-				Body:      *result.Body,
-			})
-
-		case "comment":
-			results = append(results, resultComment{
-				ID:          result.ID,
-				CommentedAt: result.PostedAt,
-				UpdatedAt:   result.UpdatedAt,
-				PostID:      *result.PostID,
-				Message:     *result.Message,
-			})
-
-		default:
-			panic(fmt.Errorf("unexpected result type: %q", result.Type))
-		}
+		results = append(results, result)
 	}
 	if err := rows.Err(); err != nil {
 		return fmt.Errorf("failed to advance rows: %w", err)
