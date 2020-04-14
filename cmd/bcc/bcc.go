@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -10,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -19,12 +19,12 @@ type APIMapping struct {
 }
 
 // APIEndpoint is the function signature of APIMux handlers.
-type APIEndpoint func(rw http.ResponseWriter, req *http.Request, db *sql.DB) error
+type APIEndpoint func(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error
 
 // APIMux implements a mux for API endpoints as an http.Handler.
 type APIMux struct {
 	// DB is the database connection to hand to the endpoint handlers.
-	DB *sql.DB
+	DB *sqlx.DB
 
 	// Endpoints maps methods and paths to handlers. Methods are
 	// converted to lowercase before being checked against this map, so
@@ -90,7 +90,7 @@ func main() {
 	dbname := flag.String("dbname", "bcc", "Database name")
 	flag.Parse()
 
-	db, err := sql.Open("postgres", fmt.Sprintf(
+	db, err := sqlx.Open("postgres", fmt.Sprintf(
 		"postgres://%v:%v@%v/%v?sslmode=disable",
 		*dbuser,
 		*dbpass,
