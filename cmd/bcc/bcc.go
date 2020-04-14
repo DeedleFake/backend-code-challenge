@@ -107,6 +107,9 @@ func main() {
 
 		Endpoints: map[APIMapping]APIEndpoint{
 			{"get", "/timeline"}: handleGetTimeline,
+
+			{"get", "/post"}:  handleGetPost,
+			{"post", "/post"}: handlePostPost,
 		},
 	}
 
