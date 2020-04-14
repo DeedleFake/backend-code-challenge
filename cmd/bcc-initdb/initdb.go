@@ -32,44 +32,40 @@ func createTables(db *sql.DB, reset bool) (err error) {
 	}
 
 	exec(`CREATE TABLE IF NOT EXISTS users (
-		id int NOT NULL,
+		id serial NOT NULL PRIMARY KEY,
 		registered_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
 		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
 		email text NOT NULL,
 		name text NOT NULL,
-		github_username text,
-		PRIMARY KEY (id)
+		github_username text
 	);`)
 	exec(`CREATE TABLE IF NOT EXISTS posts (
-		id int NOT NULL,
+		id serial NOT NULL PRIMARY KEY,
 		user_id int NOT NULL,
 		posted_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
 		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
 		title text NOT NULL,
-		body text NOT NULL,
-		PRIMARY KEY (id)
+		body text NOT NULL
 	);`)
 	exec(`CREATE TABLE IF NOT EXISTS comments (
-		id int NOT NULL,
+		id serial NOT NULL PRIMARY KEY,
 		user_id int NOT NULL,
 		commented_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
 		updated_at timestamptz DEFAULT current_timestamp,
 		post_id int NOT NULL,
-		message text NOT NULL,
-		PRIMARY KEY (id)
+		message text NOT NULL
 	);`)
 	exec(`CREATE TABLE IF NOT EXISTS ratings (
-		id int NOT NULL,
+		id serial NOT NULL PRIMARY KEY,
 		rated_at timestamptz NOT NULL DEFAULT current_timestamp,
 		created_at timestamptz NOT NULL DEFAULT current_timestamp,
 		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
 		user_id int NOT NULL,
 		rater_id int NOT NULL,
-		rating int NOT NULL,
-		PRIMARY KEY (id)
+		rating int NOT NULL
 	);`)
 
 	return err
