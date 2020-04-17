@@ -6,7 +6,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func RateUser(db *sqlx.DB, raterID, userID int, rating float64) error {
+// RateUser adds a rating to the ratings table.
+func RateUser(db *sqlx.DB, raterID, userID int, rating float64) (err error) {
 	if (rating < 1) || (rating > 5) {
 		return fmt.Errorf("invalid rating %v", rating)
 	}
@@ -15,35 +16,30 @@ func RateUser(db *sqlx.DB, raterID, userID int, rating float64) error {
 	if err != nil {
 		return fmt.Errorf("begin tx: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
 
-	avgStmt, err := tx.Preparex(`SELECT AVG(rating) FROM ratings WHERE user_id=$1`)
+	before, err := GetRating(tx, userID)
 	if err != nil {
-		return fmt.Errorf("prepare average: %w", err)
+		return fmt.Errorf("before: %w", err)
 	}
 
-	var before *float64
-	err = avgStmt.QueryRowx(userID).Scan(&before)
+	_, err = tx.Exec(`INSERT INTO ratings (rater_id, user_id, rating) VALUES ($1, $2, $3)`, raterID, userID, rating)
 	if err != nil {
-		return fmt.Errorf("scan before: %w", err)
+		return fmt.Errorf("insert: %w", err)
 	}
 
-	update := `UPDATE ratings SET rating=$1, updated_at=CURRENT_TIMESTAMP WHERE rater_id=$2 AND user_id=$3`
-	if before == nil {
-		update = `INSERT INTO ratings (rater_id, user_id, rating) VALUES ($2, $3, $1)`
-	}
-	_, err = tx.Exec(update, rating, raterID, userID)
+	after, err := GetRating(tx, userID)
 	if err != nil {
-		return fmt.Errorf("upsert: %w", err)
+		return fmt.Errorf("after: %w", err)
 	}
 
-	var after *float64
-	err = avgStmt.QueryRowx(userID).Scan(&after)
-	if err != nil {
-		return fmt.Errorf("scan after: %w", err)
+	if (before < 4) && (after >= 4) {
+		// TODO: Insert event for passing 4 stars.
 	}
-
-	// TODO: Insert event for passing 4 stars.
 
 	err = tx.Commit()
 	if err != nil {
@@ -51,4 +47,26 @@ func RateUser(db *sqlx.DB, raterID, userID int, rating float64) error {
 	}
 
 	return nil
+}
+
+// GetRating gets the rating of a given user.
+func GetRating(db sqlx.Queryer, userID int) (float64, error) {
+	var avg *float64
+	err := db.QueryRowx(`
+		SELECT
+			AVG(rating)
+		FROM
+			(
+				SELECT
+					ROW_NUMBER() OVER (PARTITION BY rater_id ORDER BY rated_at DESC) AS rn,
+					rating
+				FROM ratings
+					WHERE user_id = $1
+			 ) AS r
+		WHERE rn=1
+	`, userID).Scan(&avg)
+	if avg != nil {
+		return *avg, err
+	}
+	return 0, err
 }

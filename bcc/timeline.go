@@ -51,7 +51,15 @@ func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
 			post_id,
 			users.id AS post_user_id,
 			users.name AS post_user_name,
-			(SELECT AVG(rating) FROM ratings WHERE ratings.user_id = posts.user_id) AS post_user_rating
+			(
+				SELECT AVG(rating) FROM (
+					SELECT
+						ROW_NUMBER() OVER (PARTITION BY rater_id ORDER BY rated_at DESC) AS rn,
+						rating
+					FROM ratings
+						WHERE user_id = posts.user_id
+				) AS r WHERE rn=1
+			) AS post_user_rating
 		FROM comments
 			JOIN posts ON (posts.id = comments.post_id)
 			JOIN users ON (users.id = posts.user_id)
