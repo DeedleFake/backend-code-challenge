@@ -52,7 +52,7 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
 		user_id int NOT NULL,
 		rater_id int NOT NULL,
-		rating int NOT NULL
+		rating real NOT NULL
 	);`)
 
 	return err
