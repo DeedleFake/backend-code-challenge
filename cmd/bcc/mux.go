@@ -50,6 +50,9 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	rsp, err := h(req, mux.DB)
 	if err != nil {
+		var errJSON string
+		status := http.StatusInternalServerError
+
 		var userErr APIUserError
 		if errors.As(err, &userErr) {
 			rsp, merr := json.Marshal(map[string]interface{}{"error": userErr.Error()})
@@ -58,13 +61,13 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			status := userErr.Status
-			if status == 0 {
-				status = http.StatusInternalServerError
+			errJSON = string(rsp)
+			if userErr.Status != 0 {
+				status = userErr.Status
 			}
-			http.Error(rw, string(rsp), status)
 		}
 
+		http.Error(rw, errJSON, status)
 		log.Printf("Error: %v", err)
 		return
 	}
@@ -90,4 +93,11 @@ type APIUserError struct {
 
 func (err APIUserError) Error() string {
 	return err.Err.Error()
+}
+
+func BadRequest(err error) error {
+	return APIUserError{
+		Status: http.StatusBadRequest,
+		Err:    err,
+	}
 }

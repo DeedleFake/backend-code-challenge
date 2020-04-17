@@ -17,10 +17,7 @@ func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	}
 	err := parseQuery(req.URL.Query(), &q)
 	if err != nil {
-		return nil, APIUserError{
-			Status: http.StatusBadRequest,
-			Err:    fmt.Errorf("failed to parse query: %w", err),
-		}
+		return nil, BadRequest(fmt.Errorf("failed to parse query: %w", err))
 	}
 
 	post, err := bcc.GetPostByID(db, q.PostID)
@@ -84,22 +81,13 @@ func handlePostPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	d := json.NewDecoder(req.Body)
 	err := d.Decode(&q)
 	if err != nil {
-		return nil, APIUserError{
-			Status: http.StatusBadRequest,
-			Err:    fmt.Errorf("failed to parse body: %w", err),
-		}
+		return nil, BadRequest(fmt.Errorf("failed to parse body: %w", err))
 	}
 	if q.UserID == nil {
-		return nil, APIUserError{
-			Status: http.StatusBadRequest,
-			Err:    errors.New("user_id must be present"),
-		}
+		return nil, BadRequest(errors.New("user_id must be present"))
 	}
 	if q.Title == "" {
-		return nil, APIUserError{
-			Status: http.StatusBadRequest,
-			Err:    errors.New("title must not be blank"),
-		}
+		return nil, BadRequest(errors.New("title must not be blank"))
 	}
 
 	err = bcc.CreatePost(db, *q.UserID, q.Title, q.Body)

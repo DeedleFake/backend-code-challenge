@@ -19,17 +19,11 @@ func handleGetTimeline(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	}
 	err := parseQuery(req.URL.Query(), &q)
 	if err != nil {
-		return nil, APIUserError{
-			Status: http.StatusBadRequest,
-			Err:    fmt.Errorf("failed to parse query: %w", err),
-		}
+		return nil, BadRequest(fmt.Errorf("failed to parse query: %w", err))
 	}
 
 	if q.Limit > 100 {
-		return nil, APIUserError{
-			Status: http.StatusBadRequest,
-			Err:    errors.New("limit must not be larger than 100"),
-		}
+		return nil, BadRequest(errors.New("limit must not be larger than 100"))
 	}
 
 	entries, err := bcc.GetTimeline(db, q.UserID, q.Start, q.Limit)
@@ -38,7 +32,7 @@ func handleGetTimeline(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	}
 	defer entries.Close()
 
-	var results []bcc.TimelineEntry
+	results := []bcc.TimelineEntry{}
 	for entries.Next() {
 		entry := entries.Current().(bcc.TimelineEntry)
 		results = append(results, entry)
