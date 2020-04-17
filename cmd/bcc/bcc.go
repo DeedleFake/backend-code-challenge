@@ -38,6 +38,8 @@ func main() {
 
 			{"get", "/post"}:  handleGetPost,
 			{"post", "/post"}: handlePostPost,
+
+			{"post", "/rating"}: handlePostRating,
 		},
 	}
 
