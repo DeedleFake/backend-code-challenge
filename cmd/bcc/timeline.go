@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,7 +9,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error {
+func handleGetTimeline(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	q := struct {
 		UserID int `query:"user_id"`
 		Start  int `query:"start"`
@@ -20,14 +19,14 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 	}
 	err := parseQuery(req.URL.Query(), &q)
 	if err != nil {
-		return APIUserError{
+		return nil, APIUserError{
 			Status: http.StatusBadRequest,
 			Err:    fmt.Errorf("failed to parse query: %w", err),
 		}
 	}
 
 	if q.Limit > 100 {
-		return APIUserError{
+		return nil, APIUserError{
 			Status: http.StatusBadRequest,
 			Err:    errors.New("limit must not be larger than 100"),
 		}
@@ -35,7 +34,7 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 
 	entries, err := bcc.GetTimeline(db, q.UserID, q.Start, q.Limit)
 	if err != nil {
-		return fmt.Errorf("get timeline: %w", err)
+		return nil, fmt.Errorf("get timeline: %w", err)
 	}
 	defer entries.Close()
 
@@ -45,14 +44,8 @@ func handleGetTimeline(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) e
 		results = append(results, entry)
 	}
 	if err := entries.Err(); err != nil {
-		return fmt.Errorf("iteration: %w", err)
+		return nil, fmt.Errorf("iteration: %w", err)
 	}
 
-	e := json.NewEncoder(rw)
-	err = e.Encode(results)
-	if err != nil {
-		return fmt.Errorf("failed to encode results: %w", err)
-	}
-
-	return nil
+	return results, nil
 }

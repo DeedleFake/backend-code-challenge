@@ -11,13 +11,13 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func handleGetPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error {
+func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	var q struct {
 		PostID int `query:"post_id"`
 	}
 	err := parseQuery(req.URL.Query(), &q)
 	if err != nil {
-		return APIUserError{
+		return nil, APIUserError{
 			Status: http.StatusBadRequest,
 			Err:    fmt.Errorf("failed to parse query: %w", err),
 		}
@@ -25,12 +25,12 @@ func handleGetPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error
 
 	post, err := bcc.GetPostByID(db, q.PostID)
 	if err != nil {
-		return fmt.Errorf("post: %w", err)
+		return nil, fmt.Errorf("post: %w", err)
 	}
 
 	comments, err := bcc.GetCommentsByPostID(db, q.PostID)
 	if err != nil {
-		return fmt.Errorf("comments: %w", err)
+		return nil, fmt.Errorf("comments: %w", err)
 	}
 	defer comments.Close()
 
@@ -69,19 +69,13 @@ func handleGetPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error
 		})
 	}
 	if err := comments.Err(); err != nil {
-		return fmt.Errorf("comments iteration: %w", err)
+		return nil, fmt.Errorf("comments iteration: %w", err)
 	}
 
-	e := json.NewEncoder(rw)
-	err = e.Encode(result)
-	if err != nil {
-		return fmt.Errorf("failed to encode results: %w", err)
-	}
-
-	return nil
+	return result, nil
 }
 
-func handlePostPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error {
+func handlePostPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	var q struct {
 		UserID *int   `json:"user_id"`
 		Title  string `json:"title"`
@@ -90,19 +84,19 @@ func handlePostPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) erro
 	d := json.NewDecoder(req.Body)
 	err := d.Decode(&q)
 	if err != nil {
-		return APIUserError{
+		return nil, APIUserError{
 			Status: http.StatusBadRequest,
 			Err:    fmt.Errorf("failed to parse body: %w", err),
 		}
 	}
 	if q.UserID == nil {
-		return APIUserError{
+		return nil, APIUserError{
 			Status: http.StatusBadRequest,
 			Err:    errors.New("user_id must be present"),
 		}
 	}
 	if q.Title == "" {
-		return APIUserError{
+		return nil, APIUserError{
 			Status: http.StatusBadRequest,
 			Err:    errors.New("title must not be blank"),
 		}
@@ -110,8 +104,8 @@ func handlePostPost(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) erro
 
 	err = bcc.CreatePost(db, *q.UserID, q.Title, q.Body)
 	if err != nil {
-		return fmt.Errorf("create post: %w", err)
+		return nil, fmt.Errorf("create post: %w", err)
 	}
 
-	return nil
+	return nil, nil
 }

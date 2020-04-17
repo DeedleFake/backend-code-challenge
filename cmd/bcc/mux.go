@@ -15,8 +15,10 @@ type APIMapping struct {
 	Method, Path string
 }
 
-// APIEndpoint is the function signature of APIMux handlers.
-type APIEndpoint func(rw http.ResponseWriter, req *http.Request, db *sqlx.DB) error
+// APIEndpoint is the function signature of APIMux handlers. The
+// returned interface{} is sent to the client as JSON. A return of
+// nil, nil will result in an empty object getting sent to the client.
+type APIEndpoint func(req *http.Request, db *sqlx.DB) (interface{}, error)
 
 // APIMux implements a mux for API endpoints as an http.Handler.
 type APIMux struct {
@@ -46,7 +48,7 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err := h(rw, req, mux.DB)
+	rsp, err := h(req, mux.DB)
 	if err != nil {
 		var userErr APIUserError
 		if errors.As(err, &userErr) {
@@ -64,6 +66,17 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		log.Printf("Error: %v", err)
+		return
+	}
+
+	if rsp == nil {
+		rsp = struct{}{}
+	}
+
+	e := json.NewEncoder(rw)
+	err = e.Encode(rsp)
+	if err != nil {
+		log.Printf("Error sending response: %v", err)
 	}
 }
 
