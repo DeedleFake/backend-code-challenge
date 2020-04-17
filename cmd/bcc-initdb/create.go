@@ -60,8 +60,8 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 		created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		rating_id int NOT NULL,
-		before real NOT NULL,
-		after real NOT NULL
+		rating_before real NOT NULL,
+		rating_after real NOT NULL
 	);`)
 
 	return err
