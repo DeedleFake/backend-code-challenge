@@ -30,8 +30,6 @@ func RateUser(db *sqlx.DB, raterID, userID int, rating float64) error {
 
 	update := `UPDATE ratings SET rating=$1, updated_at=CURRENT_TIMESTAMP WHERE rater_id=$2 AND user_id=$3`
 	if before == nil {
-		// BUG: This fails because of the initial data not properly
-		// updating the ID serial's nextval.
 		update = `INSERT INTO ratings (rater_id, user_id, rating) VALUES ($2, $3, $1)`
 	}
 	_, err = tx.Exec(update, rating, raterID, userID)
