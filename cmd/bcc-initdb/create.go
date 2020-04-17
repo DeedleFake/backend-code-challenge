@@ -15,14 +15,14 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 	}
 
 	if reset {
-		exec(`DROP TABLE IF EXISTS users, posts, comments, ratings;`)
+		exec(`DROP TABLE IF EXISTS users, posts, comments, ratings, rating_events;`)
 	}
 
 	exec(`CREATE TABLE IF NOT EXISTS users (
 		id serial NOT NULL PRIMARY KEY,
-		registered_at timestamptz NOT NULL DEFAULT current_timestamp,
-		created_at timestamptz NOT NULL DEFAULT current_timestamp,
-		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
+		registered_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		email text NOT NULL,
 		name text NOT NULL,
 		github_username text
@@ -30,29 +30,38 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 	exec(`CREATE TABLE IF NOT EXISTS posts (
 		id serial NOT NULL PRIMARY KEY,
 		user_id int NOT NULL,
-		posted_at timestamptz NOT NULL DEFAULT current_timestamp,
-		created_at timestamptz NOT NULL DEFAULT current_timestamp,
-		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
+		posted_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		title text NOT NULL,
 		body text NOT NULL
 	);`)
 	exec(`CREATE TABLE IF NOT EXISTS comments (
 		id serial NOT NULL PRIMARY KEY,
 		user_id int NOT NULL,
-		commented_at timestamptz NOT NULL DEFAULT current_timestamp,
-		created_at timestamptz NOT NULL DEFAULT current_timestamp,
-		updated_at timestamptz DEFAULT current_timestamp,
+		commented_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamptz DEFAULT CURRENT_TIMESTAMP,
 		post_id int NOT NULL,
 		message text NOT NULL
 	);`)
 	exec(`CREATE TABLE IF NOT EXISTS ratings (
 		id serial NOT NULL PRIMARY KEY,
-		rated_at timestamptz NOT NULL DEFAULT current_timestamp,
-		created_at timestamptz NOT NULL DEFAULT current_timestamp,
-		updated_at timestamptz NOT NULL DEFAULT current_timestamp,
+		rated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		user_id int NOT NULL,
 		rater_id int NOT NULL,
 		rating real NOT NULL
+	);`)
+	exec(`CREATE TABLE IF NOT EXISTS rating_events (
+		id serial NOT NULL PRIMARY KEY,
+		rated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		rating_id int NOT NULL,
+		before real NOT NULL,
+		after real NOT NULL
 	);`)
 
 	return err
