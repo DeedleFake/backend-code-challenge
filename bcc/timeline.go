@@ -18,9 +18,12 @@ type TimelineEntry struct {
 
 	PostID         *int     `db:"post_id" json:"post_id,omitempty"`
 	Message        *string  `db:"message" json:"message,omitempty"`
-	PostUserID     *int     `db:"post_user_id" json:"post_user_id"`
-	PostUserName   *string  `db:"post_user_name" json:"post_user_name"`
-	PostUserRating *float64 `db:"post_user_rating" json:"post_user_rating"`
+	PostUserID     *int     `db:"post_user_id" json:"post_user_id,omitempty"`
+	PostUserName   *string  `db:"post_user_name" json:"post_user_name,omitempty"`
+	PostUserRating *float64 `db:"post_user_rating" json:"post_user_rating,omitempty"`
+
+	PassedRatingBefore *float64 `db:"passed_rating_before" json:"passed_rating_before,omitempty"`
+	PassedRatingAfter  *float64 `db:"passed_rating_after" json:"passed_rating_after,omitempty"`
 }
 
 func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
@@ -36,10 +39,14 @@ func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
 			NULL AS post_id,
 			NULL AS post_user_id,
 			NULL AS post_user_name,
-			NULL AS post_user_rating
+			NULL AS post_user_rating,
+			NULL :: real AS passed_rating_before,
+			NULL :: real AS passed_rating_after
 		FROM posts
-			WHERE user_id=$1
+			WHERE user_id = $1
+
 		UNION ALL
+
 		SELECT
 			'comment' AS type,
 			commented_at AS posted_at,
@@ -59,11 +66,36 @@ func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
 					FROM ratings
 						WHERE user_id = posts.user_id
 				) AS r WHERE rn=1
-			) AS post_user_rating
+			) AS post_user_rating,
+			NULL AS passed_rating_before,
+			NULL AS passed_rating_after
 		FROM comments
-			JOIN posts ON (posts.id = comments.post_id)
-			JOIN users ON (users.id = posts.user_id)
-			WHERE comments.user_id=$1
+			JOIN posts ON posts.id = comments.post_id
+			JOIN users ON users.id = posts.user_id
+			WHERE comments.user_id = $1
+
+		UNION ALL
+
+		SELECT
+			'passed_rating' AS type,
+			rating_events.rated_at AS posted_at,
+			rating_events.updated_at AS updated_at,
+			rating_events.id AS id,
+			NULL AS title,
+			NULL AS body,
+			NULL AS message,
+			NULL AS post_id,
+			NULL AS post_user_id,
+			NULL AS post_user_name,
+			NULL AS post_user_rating,
+			rating_events.rating_before AS passed_rating_before,
+			rating_events.rating_after AS passed_rating_after
+		FROM rating_events
+			JOIN ratings ON rating_events.rating_id = ratings.id
+			WHERE user_id = $1
+				AND rating_events.rating_before < 4
+				AND rating_events.rating_after >= 4
+
 		ORDER BY posted_at DESC
 		LIMIT $3 OFFSET $2
 	`, userID, start, limit)

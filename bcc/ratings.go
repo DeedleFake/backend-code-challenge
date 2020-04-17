@@ -48,7 +48,10 @@ func RateUser(db *sqlx.DB, raterID, userID int, rating float64) (err error) {
 	}
 
 	if b, a := math.Floor(before), math.Floor(after); b != a {
-		_, err = tx.Exec(`INSERT INTO rating_events (rating_id, before, after) VALUES ($1, $2, $3)`, newRowID, before, after)
+		_, err = tx.Exec(`
+			INSERT INTO rating_events (rating_id, rating_before, rating_after)
+			VALUES ($1, $2, $3)
+		`, newRowID, before, after)
 		if err != nil {
 			return fmt.Errorf("insert event: %w", err)
 		}
