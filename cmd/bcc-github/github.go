@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -143,7 +144,7 @@ func main() {
 	}
 	defer rows.Close()
 
-	var failed bool
+	var failed uint32
 	var wg sync.WaitGroup
 	for rows.Next() {
 		var user struct {
@@ -162,13 +163,13 @@ func main() {
 			err := addEvents(db, user.ID, user.GHUsername, *token)
 			if err != nil {
 				log.Printf("Failed to add events for %q (%v): %v", user.GHUsername, user.ID, err)
-				failed = true
+				atomic.StoreUint32(&failed, 1)
 			}
 		}()
 	}
 	wg.Wait()
 
-	if failed {
+	if failed != 0 {
 		os.Exit(1)
 	}
 }
