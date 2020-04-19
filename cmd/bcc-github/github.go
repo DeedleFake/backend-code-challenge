@@ -64,7 +64,7 @@ func getEvents(user string, token string) ([]GitHubEvent, error) {
 func addEvents(db *sqlx.DB, userID int, ghuser string, token string) error {
 	events, err := getEvents(ghuser, token)
 	if err != nil {
-		log.Fatalf("Error getting events: %v", err)
+		return fmt.Errorf("get events: %w", err)
 	}
 
 	for _, event := range events {
@@ -110,7 +110,7 @@ func addEvents(db *sqlx.DB, userID int, ghuser string, token string) error {
 
 		err := bcc.AddGitHubEvent(db, gh)
 		if err != nil {
-			log.Printf("Error adding %v: %v", gh.ID, err)
+			return fmt.Errorf("add %v: %w", gh.ID, err)
 		}
 	}
 
