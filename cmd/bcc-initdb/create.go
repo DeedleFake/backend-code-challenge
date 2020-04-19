@@ -75,6 +75,19 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 				"rating_after real NOT NULL",
 			},
 		},
+		{
+			name: "github_events",
+			columns: []string{
+				"id text NOT NULL PRIMARY KEY",
+				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
+				"user_id int NOT NULL",
+				"type text NOT NULL",
+				"repo_name text NOT NULL",
+				"pr_number int",
+				"num_commits int",
+				"head text",
+			},
+		},
 	}
 
 	if reset {

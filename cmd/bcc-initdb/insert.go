@@ -63,7 +63,11 @@ func insertData(db *sqlx.DB, table, path string) error {
 
 		args := make([]interface{}, 0, len(row))
 		for _, c := range row {
-			args = append(args, c)
+			a := interface{}(c)
+			if a == "" {
+				a = nil
+			}
+			args = append(args, a)
 		}
 
 		_, err = insert.Exec(args...)
