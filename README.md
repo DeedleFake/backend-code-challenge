@@ -1,6 +1,8 @@
 bcc
 ===
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/DeedleFake/backend-code-challenge)](https://goreportcard.com/report/github.com/DeedleFake/backend-code-challenge)
+
 bcc is a demo social media API backend.
 
 API Documentation
