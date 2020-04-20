@@ -1,3 +1,4 @@
+// bcc-initdb is an admin tool for initializing the database.
 package main
 
 import (

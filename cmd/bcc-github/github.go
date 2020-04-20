@@ -1,3 +1,11 @@
+// bcc-github updates the database with public GitHub events.
+//
+// This command is designed to be run as a cron job. It searches the
+// database for users that have linked their GitHub profiles and gets
+// event data from the GitHub API, adding it to the database so that
+// it can show up in those users' timelines. It uses the timestamps
+// that GitHub provides, so events will be sorted correctly in the
+// timeline relative to other entries.
 package main
 
 import (

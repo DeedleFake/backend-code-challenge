@@ -1,3 +1,6 @@
+// bcc runs a REST-ish API server.
+//
+// For a list of endpoints and their parameters, run bcc -doc.
 package main
 
 import (
