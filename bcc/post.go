@@ -80,3 +80,9 @@ func CreateComment(db *sqlx.DB, userID, postID uint64, message string) error {
 	`, userID, postID, message)
 	return err
 }
+
+// DeleteComment deletes a comment.
+func DeleteComment(db *sqlx.DB, commentID uint64) error {
+	_, err := db.Exec(`DELETE FROM comments WHERE id = $1`, commentID)
+	return err
+}
