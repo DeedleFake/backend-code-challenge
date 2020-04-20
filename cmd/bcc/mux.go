@@ -22,9 +22,9 @@ type APIEndpoint interface {
 	Desc() string
 
 	// Params returns an instance of a type for holding the parameters
-	// of this endpoint. For a GET request, this will be parsed into
-	// using parseQuery. For other request types, the body of the
-	// request will be decoded into this object as JSON.
+	// of this endpoint. For GET and DELETE requests, this will be
+	// parsed into using parseQuery. For other request types, the body
+	// of the request will be decoded into this object as JSON.
 	Params() interface{}
 
 	// Serve serves the endpoint to the client. The params are the value
@@ -59,7 +59,7 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	params := h.Params()
 	switch req.Method {
-	case "GET":
+	case "GET", "DELETE":
 		err := parseQuery(req.URL.Query(), params)
 		if err != nil {
 			http.Error(rw, fmt.Sprintf(`{"error":%q}`, err.Error()), http.StatusBadRequest)
