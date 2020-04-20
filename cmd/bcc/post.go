@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,14 +10,22 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
-	var q struct {
-		PostID uint64 `query:"post_id"`
-	}
-	err := parseQuery(req.URL.Query(), &q)
-	if err != nil {
-		return nil, BadRequest(fmt.Errorf("failed to parse query: %w", err))
-	}
+type GetPostParams struct {
+	PostID uint64 `query:"post_id"`
+}
+
+type GetPostHandler struct{}
+
+func (h GetPostHandler) Desc() string {
+	return "get a post and its comments"
+}
+
+func (h GetPostHandler) Params() interface{} {
+	return &GetPostParams{}
+}
+
+func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+	q := params.(*GetPostParams)
 
 	post, err := bcc.GetPostByID(db, q.PostID)
 	if err != nil {
@@ -72,17 +79,24 @@ func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	return result, nil
 }
 
-func handlePostPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
-	var q struct {
-		UserID *uint64 `json:"user_id"`
-		Title  string  `json:"title"`
-		Body   string  `json:"body"`
-	}
-	d := json.NewDecoder(req.Body)
-	err := d.Decode(&q)
-	if err != nil {
-		return nil, BadRequest(fmt.Errorf("failed to parse body: %w", err))
-	}
+type PostPostParams struct {
+	UserID *uint64 `json:"user_id"`
+	Title  string  `json:"title"`
+	Body   string  `json:"body"`
+}
+
+type PostPostHandler struct{}
+
+func (h PostPostHandler) Desc() string {
+	return "create a new post"
+}
+
+func (h PostPostHandler) Params() interface{} {
+	return &PostPostParams{}
+}
+
+func (h PostPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+	q := params.(*PostPostParams)
 	if q.UserID == nil {
 		return nil, BadRequest(errors.New("user_id must be present"))
 	}
@@ -90,7 +104,7 @@ func handlePostPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 		return nil, BadRequest(errors.New("title must not be blank"))
 	}
 
-	err = bcc.CreatePost(db, *q.UserID, q.Title, q.Body)
+	err := bcc.CreatePost(db, *q.UserID, q.Title, q.Body)
 	if err != nil {
 		return nil, fmt.Errorf("create post: %w", err)
 	}

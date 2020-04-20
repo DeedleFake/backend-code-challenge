@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -15,20 +15,31 @@ type APIMapping struct {
 	Method, Path string
 }
 
-// APIEndpoint is the function signature of APIMux handlers. The
-// returned interface{} is sent to the client as JSON. A return of
-// nil, nil will result in an empty object getting sent to the client.
-type APIEndpoint func(req *http.Request, db *sqlx.DB) (interface{}, error)
+// APIEndpoint is an endpoint of the API.
+type APIEndpoint interface {
+	// Desc is a string describing the endpoint. It is purely for
+	// documentation purposes.
+	Desc() string
+
+	// Params returns an instance of a type for holding the parameters
+	// of this endpoint. For a GET request, this will be parsed into
+	// using parseQuery. For other request types, the body of the
+	// request will be decoded into this object as JSON.
+	Params() interface{}
+
+	// Serve serves the endpoint to the client. The params are the value
+	// returned by Params after having been filled. If err is nil then
+	// rsp is encoded to JSON and returned to the client. If rsp and err
+	// are nil, an empty object will be sent back.
+	Serve(req *http.Request, db *sqlx.DB, params interface{}) (rsp interface{}, err error)
+}
 
 // APIMux implements a mux for API endpoints as an http.Handler.
 type APIMux struct {
 	// DB is the database connection to hand to the endpoint handlers.
 	DB *sqlx.DB
 
-	// Endpoints maps methods and paths to handlers. Methods are
-	// converted to lowercase before being checked against this map, so
-	// any entries added here should use lowercase for specifying their
-	// mappings. Paths are not modified.
+	// Endpoints maps methods and paths to handlers.
 	Endpoints map[APIMapping]APIEndpoint
 }
 
@@ -36,8 +47,6 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	log.Printf("%v %v", req.Method, req.URL.RequestURI())
 
 	rw.Header().Set("Content-Type", "application/json")
-
-	req.Method = strings.ToLower(req.Method)
 
 	h := mux.Endpoints[APIMapping{
 		Method: req.Method,
@@ -48,7 +57,23 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rsp, err := h(req, mux.DB)
+	params := h.Params()
+	switch req.Method {
+	case "GET":
+		err := parseQuery(req.URL.Query(), params)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf(`{"error":%q}`, err.Error()), http.StatusBadRequest)
+			return
+		}
+
+	default:
+		err := json.NewDecoder(req.Body).Decode(params)
+		if err != nil {
+			http.Error(rw, fmt.Sprintf(`{"error":%q}`, err.Error()), http.StatusBadRequest)
+		}
+	}
+
+	rsp, err := h.Serve(req, mux.DB, params)
 	if err != nil {
 		var errJSON string
 		status := http.StatusInternalServerError
@@ -76,8 +101,7 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rsp = struct{}{}
 	}
 
-	e := json.NewEncoder(rw)
-	err = e.Encode(rsp)
+	err = json.NewEncoder(rw).Encode(rsp)
 	if err != nil {
 		log.Printf("Error sending response: %v", err)
 	}

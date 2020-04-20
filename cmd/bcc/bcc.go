@@ -34,12 +34,12 @@ func main() {
 		DB: db,
 
 		Endpoints: map[APIMapping]APIEndpoint{
-			{"get", "/timeline"}: handleGetTimeline,
+			{"GET", "/timeline"}: GetTimelineHandler{},
 
-			{"get", "/post"}:  handleGetPost,
-			{"post", "/post"}: handlePostPost,
+			{"GET", "/post"}:  GetPostHandler{},
+			{"POST", "/post"}: PostPostHandler{},
 
-			{"post", "/rating"}: handlePostRating,
+			{"POST", "/rating"}: PostRatingHandler{},
 		},
 	}
 

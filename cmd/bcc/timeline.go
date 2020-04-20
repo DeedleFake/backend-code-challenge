@@ -9,19 +9,26 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func handleGetTimeline(req *http.Request, db *sqlx.DB) (interface{}, error) {
-	q := struct {
-		UserID uint64 `query:"user_id"`
-		Start  int    `query:"start"`
-		Limit  int    `query:"limit"`
-	}{
+type GetTimelineParams struct {
+	UserID uint64 `query:"user_id"`
+	Start  int    `query:"start"`
+	Limit  int    `query:"limit"`
+}
+
+type GetTimelineHandler struct{}
+
+func (h GetTimelineHandler) Desc() string {
+	return "get a user's timeline"
+}
+
+func (h GetTimelineHandler) Params() interface{} {
+	return &GetTimelineParams{
 		Limit: 10,
 	}
-	err := parseQuery(req.URL.Query(), &q)
-	if err != nil {
-		return nil, BadRequest(fmt.Errorf("failed to parse query: %w", err))
-	}
+}
 
+func (h GetTimelineHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+	q := params.(*GetTimelineParams)
 	if q.Limit > 100 {
 		return nil, BadRequest(errors.New("limit must not be larger than 100"))
 	}
