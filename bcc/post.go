@@ -68,3 +68,15 @@ func GetCommentsByPostID(db *sqlx.DB, postID uint64) (*Iterator, error) {
 		close: rows.Close,
 	}, nil
 }
+
+// CreateComment creates a comment on a post.
+func CreateComment(db *sqlx.DB, userID, postID uint64, message string) error {
+	_, err := db.Exec(`
+		INSERT INTO comments (
+			user_id,
+			post_id,
+			message
+		) VALUES ($1, $2, $3)
+	`, userID, postID, message)
+	return err
+}
