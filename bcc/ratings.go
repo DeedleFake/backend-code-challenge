@@ -9,6 +9,11 @@ import (
 )
 
 // RateUser adds a rating to the ratings table.
+//
+// BUG: It is possible that if two users rate a third at the same time
+// and either rating would have resulted in the user being rated
+// passing four stars, two events claiming as much might get inserted
+// into the database, resulting in an oddity in the user's timeline.
 func RateUser(db *sqlx.DB, raterID, userID uint64, rating float64) (err error) {
 	if raterID == userID {
 		return errors.New("not allowed to rate self")
