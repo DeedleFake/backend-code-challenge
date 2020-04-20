@@ -11,7 +11,7 @@ import (
 )
 
 type GetPostParams struct {
-	PostID uint64 `query:"post_id"`
+	PostID uint64 `query:"post_id" desc:"ID of the post being fetched"`
 }
 
 type GetPostHandler struct{}
@@ -80,9 +80,9 @@ func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}
 }
 
 type PostPostParams struct {
-	UserID uint64 `json:"user_id"`
-	Title  string `json:"title"`
-	Body   string `json:"body"`
+	UserID uint64 `json:"user_id" desc:"ID of the user making the post"`
+	Title  string `json:"title" desc:"title of the post being made, must not be blank"`
+	Body   string `json:"body" desc:"contents of the post being made"`
 }
 
 type PostPostHandler struct{}

@@ -10,7 +10,7 @@ import (
 )
 
 type GetTimelineParams struct {
-	UserID uint64 `query:"user_id"`
+	UserID uint64 `query:"user_id" desc:"ID of the user whose timeline is being fetched"`
 	Start  int    `query:"start" desc:"number of timeline entries to skip before returning results"`
 	Limit  int    `query:"limit" desc:"maximum number of results to return"`
 }
