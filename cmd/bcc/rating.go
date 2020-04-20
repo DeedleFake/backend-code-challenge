@@ -10,9 +10,9 @@ import (
 )
 
 type PostRatingParams struct {
-	UserID  uint64  `json:"user_id"`
-	RaterID uint64  `json:"rater_id"`
-	Rating  float64 `json:"rating"`
+	UserID  uint64  `json:"user_id" desc:"ID of the user being rated"`
+	RaterID uint64  `json:"rater_id" desc:"ID of the user doing the rating"`
+	Rating  float64 `json:"rating" desc:"rating being given, must be between 1 and 5, inclusive"`
 }
 
 type PostRatingHandler struct{}

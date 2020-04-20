@@ -80,9 +80,9 @@ func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}
 }
 
 type PostPostParams struct {
-	UserID *uint64 `json:"user_id"`
-	Title  string  `json:"title"`
-	Body   string  `json:"body"`
+	UserID uint64 `json:"user_id"`
+	Title  string `json:"title"`
+	Body   string `json:"body"`
 }
 
 type PostPostHandler struct{}
@@ -97,14 +97,11 @@ func (h PostPostHandler) Params() interface{} {
 
 func (h PostPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
 	q := params.(*PostPostParams)
-	if q.UserID == nil {
-		return nil, BadRequest(errors.New("user_id must be present"))
-	}
 	if q.Title == "" {
 		return nil, BadRequest(errors.New("title must not be blank"))
 	}
 
-	err := bcc.CreatePost(db, *q.UserID, q.Title, q.Body)
+	err := bcc.CreatePost(db, q.UserID, q.Title, q.Body)
 	if err != nil {
 		return nil, fmt.Errorf("create post: %w", err)
 	}
