@@ -27,8 +27,16 @@ func GetPostByID(db *sqlx.DB, id uint64) (Post, error) {
 	return post, err
 }
 
+// CreatePost creates a post and adds it to the database.
 func CreatePost(db *sqlx.DB, userID uint64, title, body string) error {
-	panic("Not implemented.")
+	_, err := db.Exec(`
+		INSERT INTO posts (
+			user_id,
+			title,
+			body
+		) VALUES ($1, $2, $3)
+	`, userID, title, body)
+	return err
 }
 
 // Comment mirrors a row of the comments table.
