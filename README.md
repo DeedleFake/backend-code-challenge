@@ -19,3 +19,4 @@ TODO
 * Full input validation so that, for example, you can't make a comment on a post that doesn't exist.
 * Documentation of the structure of data returned from endpoints.
 * Authentication with OAuth tokens and the `Authorization` header.
+* Refactor pieces of `cmd/bcc`, especially the mux implementation, into their own packages.
