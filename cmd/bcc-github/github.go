@@ -21,6 +21,8 @@ var httpClient = &http.Client{
 	Timeout: 60 * time.Second,
 }
 
+// GitHubEvent is a minimal structure for decoding the returned data
+// from the GitHub API.
 type GitHubEvent struct {
 	Type      string    `json:"type"`
 	ID        uint64    `json:"id,string"`

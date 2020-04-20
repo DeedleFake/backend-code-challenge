@@ -95,6 +95,7 @@ func (err APIUserError) Error() string {
 	return err.Err.Error()
 }
 
+// BadRequest returns a 400 error that wraps the given error.
 func BadRequest(err error) error {
 	return APIUserError{
 		Status: http.StatusBadRequest,

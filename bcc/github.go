@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// GitHubEvent mirrors a row of the github_events table.
 type GitHubEvent struct {
 	ID        uint64    `db:"id" json:"id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
@@ -20,6 +21,9 @@ type GitHubEvent struct {
 	Head       *string `db:"head" json:"head,omitempty"`
 }
 
+// AddGitHubEvent adds an event to the github_events table. It
+// discards any attempts to add an event with an ID that is already in
+// the table.
 func AddGitHubEvent(db *sqlx.DB, event GitHubEvent) error {
 	_, err := db.Exec(
 		`

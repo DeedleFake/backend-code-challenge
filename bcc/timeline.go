@@ -6,6 +6,9 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// TimelineEntry is an entry in a user's timeline. Pointer fields may
+// be null depending on the type of the entry. Valid types are "post",
+// "comment", "passed_rating", and "github_event".
 type TimelineEntry struct {
 	Type string `db:"type" json:"type"`
 
@@ -32,6 +35,11 @@ type TimelineEntry struct {
 	GitHubEventHead    *string `db:"github_event_head" json:"github_event_head,omitempty"`
 }
 
+// GetTimeline returns an iterator over the entries in a user's
+// timeline, sorted in descending date order. start and limit control
+// how many rows to return and where to start in the returned rows. In
+// other words, a start of 10 and a limit of 20 will skip 10 rows and
+// then return the 20 following those.
 func GetTimeline(db *sqlx.DB, userID uint64, start, limit int) (*Iterator, error) {
 	rows, err := db.Queryx(`
 		SELECT

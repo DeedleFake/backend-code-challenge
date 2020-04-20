@@ -44,6 +44,9 @@ func (iter *Iterator) Next() bool {
 	return true
 }
 
+// Close closes whatever underlying system the iterator is iterating
+// over, if closing it makes sense. This should always be called when
+// the client is done with an iterator.
 func (iter *Iterator) Close() error {
 	return iter.close()
 }
@@ -54,6 +57,7 @@ func (iter *Iterator) Current() interface{} {
 	return iter.cache
 }
 
+// Err returns any errors that caused the iterator to stop early.
 func (iter *Iterator) Err() error {
 	return iter.err
 }
