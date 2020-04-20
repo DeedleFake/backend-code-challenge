@@ -38,3 +38,28 @@ func (h PostCommentHandler) Serve(req *http.Request, db *sqlx.DB, params interfa
 
 	return nil, nil
 }
+
+type DeleteCommentParams struct {
+	CommentID uint64 `query:"comment_id" desc:"ID of the comment being deleted"`
+}
+
+type DeleteCommentHandler struct{}
+
+func (h DeleteCommentHandler) Desc() string {
+	return "delete a comment"
+}
+
+func (h DeleteCommentHandler) Params() interface{} {
+	return &DeleteCommentParams{}
+}
+
+func (h DeleteCommentHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+	q := params.(*DeleteCommentParams)
+
+	err := bcc.DeleteComment(db, q.CommentID)
+	if err != nil {
+		return nil, fmt.Errorf("delete comment: %w", err)
+	}
+
+	return nil, nil
+}

@@ -71,7 +71,8 @@ func main() {
 		{"GET", "/post"}:  GetPostHandler{},
 		{"POST", "/post"}: PostPostHandler{},
 
-		{"POST", "/comment"}: PostCommentHandler{},
+		{"POST", "/comment"}:   PostCommentHandler{},
+		{"DELETE", "/comment"}: DeleteCommentHandler{},
 
 		{"POST", "/rating"}: PostRatingHandler{},
 	}
