@@ -75,18 +75,12 @@ func (mux APIMux) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	rsp, err := h.Serve(req, mux.DB, params)
 	if err != nil {
-		var errJSON string
+		errJSON := `{"error":"internal server error"}`
 		status := http.StatusInternalServerError
 
 		var userErr APIUserError
 		if errors.As(err, &userErr) {
-			rsp, merr := json.Marshal(map[string]interface{}{"error": userErr.Error()})
-			if merr != nil {
-				log.Printf("Failed to marshal error: %v\nOriginal error: %v", merr, err)
-				return
-			}
-
-			errJSON = string(rsp)
+			errJSON = fmt.Sprintf(`{"error":%q}`, userErr.Error())
 			if userErr.Status != 0 {
 				status = userErr.Status
 			}
