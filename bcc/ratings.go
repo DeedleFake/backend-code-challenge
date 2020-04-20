@@ -9,7 +9,7 @@ import (
 )
 
 // RateUser adds a rating to the ratings table.
-func RateUser(db *sqlx.DB, raterID, userID int, rating float64) (err error) {
+func RateUser(db *sqlx.DB, raterID, userID uint64, rating float64) (err error) {
 	if raterID == userID {
 		return errors.New("not allowed to rate self")
 	}
@@ -32,7 +32,7 @@ func RateUser(db *sqlx.DB, raterID, userID int, rating float64) (err error) {
 		return fmt.Errorf("before: %w", err)
 	}
 
-	var newRowID int
+	var newRowID uint64
 	err = tx.QueryRowx(`
 		INSERT INTO ratings (rater_id, user_id, rating)
 		VALUES ($1, $2, $3)
@@ -66,7 +66,7 @@ func RateUser(db *sqlx.DB, raterID, userID int, rating float64) (err error) {
 }
 
 // GetRating gets the rating of a given user.
-func GetRating(db sqlx.Queryer, userID int) (float64, error) {
+func GetRating(db sqlx.Queryer, userID uint64) (float64, error) {
 	var avg *float64
 	err := db.QueryRowx(`
 		SELECT

@@ -23,17 +23,17 @@ var httpClient = &http.Client{
 
 type GitHubEvent struct {
 	Type      string    `json:"type"`
-	ID        string    `json:"id"`
+	ID        uint64    `json:"id,string"`
 	CreatedAt time.Time `json:"created_at"`
-	Payload   struct {
-		Action     string `json:"action"`
-		Repository struct {
-			FullName string `json:"full_name"`
-		} `json:"repository"`
+	Repo      struct {
+		Name string `json:"name"`
+	} `json:"repo"`
+	Payload struct {
+		Action      string `json:"action"`
 		PullRequest struct {
 			Merged bool `json:"merged"`
 		} `json:"pull_request"`
-		Number int    `json:"number"`
+		Number uint64 `json:"number"`
 		Size   int    `json:"size"`
 		Head   string `json:"head"`
 	} `json:"payload"`
@@ -62,7 +62,7 @@ func getEvents(user string, token string) ([]GitHubEvent, error) {
 	return events, nil
 }
 
-func addEvents(db *sqlx.DB, userID int, ghuser string, token string) error {
+func addEvents(db *sqlx.DB, userID uint64, ghuser string, token string) error {
 	events, err := getEvents(ghuser, token)
 	if err != nil {
 		return fmt.Errorf("get events: %w", err)
@@ -82,7 +82,7 @@ func addEvents(db *sqlx.DB, userID int, ghuser string, token string) error {
 			}
 
 			gh.Type = "create_repo"
-			gh.RepoName = event.Payload.Repository.FullName
+			gh.RepoName = event.Repo.Name
 
 		case "PullRequestEvent":
 			switch event.Payload.Action {
@@ -99,14 +99,17 @@ func addEvents(db *sqlx.DB, userID int, ghuser string, token string) error {
 				continue
 			}
 
-			gh.RepoName = event.Payload.Repository.FullName
+			gh.RepoName = event.Repo.Name
 			gh.PRNumber = &event.Payload.Number
 
 		case "PushEvent":
 			gh.Type = "push_commits"
-			gh.RepoName = event.Payload.Repository.FullName
+			gh.RepoName = event.Repo.Name
 			gh.NumCommits = &event.Payload.Size
 			gh.Head = &event.Payload.Head
+
+		default:
+			continue
 		}
 
 		err := bcc.AddGitHubEvent(db, gh)
@@ -148,7 +151,7 @@ func main() {
 	var wg sync.WaitGroup
 	for rows.Next() {
 		var user struct {
-			ID         int    `db:"id"`
+			ID         uint64 `db:"id"`
 			GHUsername string `db:"github_username"`
 		}
 		err := rows.StructScan(&user)

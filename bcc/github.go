@@ -7,14 +7,14 @@ import (
 )
 
 type GitHubEvent struct {
-	ID        string    `db:"id" json:"id"`
+	ID        uint64    `db:"id" json:"id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	UserID    int       `db:"user_id" json:"user_id"`
+	UserID    uint64    `db:"user_id" json:"user_id"`
 
 	Type     string `db:"type" json:"type"`
 	RepoName string `db:"repo_name" json:"repo_name"`
 
-	PRNumber *int `db:"pr_number" json:"pr_number,omitempty"`
+	PRNumber *uint64 `db:"pr_number" json:"pr_number,omitempty"`
 
 	NumCommits *int    `db:"num_commits" json:"num_commits,omitempty"`
 	Head       *string `db:"head" json:"head,omitempty"`

@@ -12,8 +12,8 @@ import (
 
 func handlePostRating(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	var q struct {
-		UserID  int     `json:"user_id"`
-		RaterID int     `json:"rater_id"`
+		UserID  uint64  `json:"user_id"`
+		RaterID uint64  `json:"rater_id"`
 		Rating  float64 `json:"rating"`
 	}
 	err := json.NewDecoder(req.Body).Decode(&q)

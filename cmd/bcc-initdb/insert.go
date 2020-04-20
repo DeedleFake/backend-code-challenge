@@ -83,8 +83,8 @@ func insertData(db *sqlx.DB, table, path string) error {
 
 	for _, col := range types {
 		switch col.DatabaseTypeName() {
-		case "INT4":
-			var max int
+		case "INT4", "INT8":
+			var max int64
 			err := db.QueryRowx(`SELECT MAX(` + col.Name() + `) FROM ` + table).Scan(&max)
 			if err != nil {
 				return fmt.Errorf("max %q: %w", col.Name(), err)

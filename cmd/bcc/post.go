@@ -13,7 +13,7 @@ import (
 
 func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	var q struct {
-		PostID int `query:"post_id"`
+		PostID uint64 `query:"post_id"`
 	}
 	err := parseQuery(req.URL.Query(), &q)
 	if err != nil {
@@ -32,7 +32,7 @@ func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	defer comments.Close()
 
 	result := struct {
-		UserID    int       `json:"user_id"`
+		UserID    uint64    `json:"user_id"`
 		PostedAt  time.Time `json:"posted_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 
@@ -52,10 +52,10 @@ func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 		comment := comments.Current().(bcc.Comment)
 
 		result.Comments = append(result.Comments, struct {
-			UserID    int       `json:"user_id"`
+			UserID    uint64    `json:"user_id"`
 			PostedAt  time.Time `"json:"posted_at"`
 			UpdatedAt time.Time `json:"updated_at"`
-			ID        int       `json:"id"`
+			ID        uint64    `json:"id"`
 			Message   string    `json:"message"`
 		}{
 			UserID:    comment.UserID,
@@ -74,9 +74,9 @@ func handleGetPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 
 func handlePostPost(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	var q struct {
-		UserID *int   `json:"user_id"`
-		Title  string `json:"title"`
-		Body   string `json:"body"`
+		UserID *uint64 `json:"user_id"`
+		Title  string  `json:"title"`
+		Body   string  `json:"body"`
 	}
 	d := json.NewDecoder(req.Body)
 	err := d.Decode(&q)

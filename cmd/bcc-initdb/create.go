@@ -18,7 +18,7 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 		{
 			name: "users",
 			columns: []string{
-				"id serial NOT NULL PRIMARY KEY",
+				"id bigserial NOT NULL PRIMARY KEY",
 				"registered_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
@@ -30,8 +30,8 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 		{
 			name: "posts",
 			columns: []string{
-				"id serial NOT NULL PRIMARY KEY",
-				"user_id int NOT NULL",
+				"id bigserial NOT NULL PRIMARY KEY",
+				"user_id bigint NOT NULL",
 				"posted_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
@@ -42,35 +42,35 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 		{
 			name: "comments",
 			columns: []string{
-				"id serial NOT NULL PRIMARY KEY",
-				"user_id int NOT NULL",
+				"id bigserial NOT NULL PRIMARY KEY",
+				"user_id bigint NOT NULL",
 				"commented_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"updated_at timestamptz DEFAULT CURRENT_TIMESTAMP",
-				"post_id int NOT NULL",
+				"post_id bigint NOT NULL",
 				"message text NOT NULL",
 			},
 		},
 		{
 			name: "ratings",
 			columns: []string{
-				"id serial NOT NULL PRIMARY KEY",
+				"id bigserial NOT NULL PRIMARY KEY",
 				"rated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
-				"user_id int NOT NULL",
-				"rater_id int NOT NULL",
+				"user_id bigint NOT NULL",
+				"rater_id bigint NOT NULL",
 				"rating real NOT NULL",
 			},
 		},
 		{
 			name: "rating_events",
 			columns: []string{
-				"id serial NOT NULL PRIMARY KEY",
+				"id bigserial NOT NULL PRIMARY KEY",
 				"rated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
 				"updated_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
-				"rating_id int NOT NULL",
+				"rating_id bigint NOT NULL",
 				"rating_before real NOT NULL",
 				"rating_after real NOT NULL",
 			},
@@ -78,12 +78,12 @@ func createTables(db *sqlx.DB, reset bool) (err error) {
 		{
 			name: "github_events",
 			columns: []string{
-				"id text NOT NULL PRIMARY KEY",
+				"id bigint NOT NULL PRIMARY KEY",
 				"created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP",
-				"user_id int NOT NULL",
+				"user_id bigint NOT NULL",
 				"type text NOT NULL",
 				"repo_name text NOT NULL",
-				"pr_number int",
+				"pr_number bigint",
 				"num_commits int",
 				"head text",
 			},

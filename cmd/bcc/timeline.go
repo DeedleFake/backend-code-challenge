@@ -11,9 +11,9 @@ import (
 
 func handleGetTimeline(req *http.Request, db *sqlx.DB) (interface{}, error) {
 	q := struct {
-		UserID int `query:"user_id"`
-		Start  int `query:"start"`
-		Limit  int `query:"limit"`
+		UserID uint64 `query:"user_id"`
+		Start  int    `query:"start"`
+		Limit  int    `query:"limit"`
 	}{
 		Limit: 10,
 	}

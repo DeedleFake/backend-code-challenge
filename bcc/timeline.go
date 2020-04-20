@@ -11,14 +11,14 @@ type TimelineEntry struct {
 
 	PostedAt  time.Time `db:"posted_at" json:"posted_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
-	ID        int       `db:"id" json:"id"`
+	ID        uint64    `db:"id" json:"id"`
 
 	Title *string `db:"title" json:"title,omitempty"`
 	Body  *string `db:"body" json:"body,omitempty"`
 
-	PostID         *int     `db:"post_id" json:"post_id,omitempty"`
+	PostID         *uint64  `db:"post_id" json:"post_id,omitempty"`
 	Message        *string  `db:"message" json:"message,omitempty"`
-	PostUserID     *int     `db:"post_user_id" json:"post_user_id,omitempty"`
+	PostUserID     *uint64  `db:"post_user_id" json:"post_user_id,omitempty"`
 	PostUserName   *string  `db:"post_user_name" json:"post_user_name,omitempty"`
 	PostUserRating *float64 `db:"post_user_rating" json:"post_user_rating,omitempty"`
 
@@ -27,18 +27,18 @@ type TimelineEntry struct {
 
 	GitHubEventType    *string `db:"github_event_type" json:"github_event_type,omitempty"`
 	GitHubEventRepo    *string `db:"github_event_repo" json:"github_event_repo,omitempty"`
-	GitHubEventPR      *int    `db:"github_event_pr" json:"github_event_pr,omitempty"`
+	GitHubEventPR      *uint64 `db:"github_event_pr" json:"github_event_pr,omitempty"`
 	GitHubEventCommits *int    `db:"github_event_commits" json:"github_event_commits,omitempty"`
 	GitHubEventHead    *string `db:"github_event_head" json:"github_event_head,omitempty"`
 }
 
-func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
+func GetTimeline(db *sqlx.DB, userID uint64, start, limit int) (*Iterator, error) {
 	rows, err := db.Queryx(`
 		SELECT
 			'post' AS type,
 			posted_at,
 			updated_at,
-			id :: text,
+			id,
 			title,
 			body,
 			NULL AS message,
@@ -50,8 +50,8 @@ func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
 			NULL :: real AS passed_rating_after,
 			NULL :: text AS github_event_type,
 			NULL :: text AS github_event_repo,
-			NULL :: int AS github_event_pr,
-			NULL :: int AS github_event_commits,
+			NULL :: bigint AS github_event_pr,
+			NULL :: bigint AS github_event_commits,
 			NULL :: text AS github_event_head
 		FROM posts
 			WHERE user_id = $1
@@ -62,7 +62,7 @@ func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
 			'comment' AS type,
 			commented_at AS posted_at,
 			comments.updated_at AS updated_at,
-			comments.id :: text AS id,
+			comments.id AS id,
 			NULL AS title,
 			NULL AS body,
 			message,
@@ -96,7 +96,7 @@ func GetTimeline(db *sqlx.DB, userID, start, limit int) (*Iterator, error) {
 			'passed_rating' AS type,
 			rating_events.rated_at AS posted_at,
 			rating_events.updated_at AS updated_at,
-			rating_events.id :: text AS id,
+			rating_events.id AS id,
 			NULL AS title,
 			NULL AS body,
 			NULL AS message,
