@@ -21,11 +21,11 @@ func (h PostCommentHandler) Desc() string {
 	return "make a comment on a post"
 }
 
-func (h PostCommentHandler) Params() interface{} {
+func (h PostCommentHandler) Params() any {
 	return &PostCommentParams{}
 }
 
-func (h PostCommentHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+func (h PostCommentHandler) Serve(req *http.Request, db *sqlx.DB, params any) (any, error) {
 	q := params.(*PostCommentParams)
 	if q.Message == "" {
 		return nil, BadRequest(errors.New("message must not be blank"))
@@ -49,11 +49,11 @@ func (h DeleteCommentHandler) Desc() string {
 	return "delete a comment"
 }
 
-func (h DeleteCommentHandler) Params() interface{} {
+func (h DeleteCommentHandler) Params() any {
 	return &DeleteCommentParams{}
 }
 
-func (h DeleteCommentHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+func (h DeleteCommentHandler) Serve(req *http.Request, db *sqlx.DB, params any) (any, error) {
 	q := params.(*DeleteCommentParams)
 
 	err := bcc.DeleteComment(db, q.CommentID)

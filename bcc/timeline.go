@@ -158,7 +158,7 @@ func GetTimeline(db *sqlx.DB, userID uint64, start, limit int) (*Iterator, error
 
 	return &Iterator{
 		next: rows.Next,
-		cur: func() (interface{}, error) {
+		cur: func() (any, error) {
 			var entry TimelineEntry
 			err := rows.StructScan(&entry)
 			return entry, err

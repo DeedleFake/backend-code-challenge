@@ -3,20 +3,20 @@ package bcc
 // Iterator iterates over some type of value. It's used much like a
 // bufio.Scanner or an sql.Rows.
 //
-//    for iter.Next() {
-//      cur := iter.Current()
+//	for iter.Next() {
+//	  cur := iter.Current()
 //
-//      // ...
-//    }
-//    if err := iter.Err(); err != nil {
-//      // ...
-//    }
+//	  // ...
+//	}
+//	if err := iter.Err(); err != nil {
+//	  // ...
+//	}
 type Iterator struct {
 	next  func() bool
-	cur   func() (interface{}, error)
+	cur   func() (any, error)
 	close func() error
 
-	cache interface{}
+	cache any
 	err   error
 }
 
@@ -53,7 +53,7 @@ func (iter *Iterator) Close() error {
 
 // Current returns the current value of the iteration. This value is
 // cached during the call to Next, so this is a cheap call.
-func (iter *Iterator) Current() interface{} {
+func (iter *Iterator) Current() any {
 	return iter.cache
 }
 

@@ -25,13 +25,13 @@ type APIEndpoint interface {
 	// of this endpoint. For GET and DELETE requests, this will be
 	// parsed into using parseQuery. For other request types, the body
 	// of the request will be decoded into this object as JSON.
-	Params() interface{}
+	Params() any
 
 	// Serve serves the endpoint to the client. The params are the value
 	// returned by Params after having been filled. If err is nil then
 	// rsp is encoded to JSON and returned to the client. If rsp and err
 	// are nil, an empty object will be sent back.
-	Serve(req *http.Request, db *sqlx.DB, params interface{}) (rsp interface{}, err error)
+	Serve(req *http.Request, db *sqlx.DB, params any) (rsp any, err error)
 }
 
 // APIMux implements a mux for API endpoints as an http.Handler.

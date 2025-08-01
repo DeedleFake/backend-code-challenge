@@ -16,9 +16,9 @@ import (
 // be a list of the columns that correspond to the columns of the CSV
 // file. In other words, the file
 //
-//    col1,col2
-//    an,example
-//    and,another
+//	col1,col2
+//	an,example
+//	and,another
 //
 // will attempt to insert "an" and "and" into the column "col1" and
 // "example" and "another" into the column "col2".
@@ -61,9 +61,9 @@ func insertData(db *sqlx.DB, table, path string) error {
 			return fmt.Errorf("read row: %w", err)
 		}
 
-		args := make([]interface{}, 0, len(row))
+		args := make([]any, 0, len(row))
 		for _, c := range row {
-			a := interface{}(c)
+			a := any(c)
 			if a == "" {
 				a = nil
 			}

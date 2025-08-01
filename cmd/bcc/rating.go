@@ -21,11 +21,11 @@ func (h PostRatingHandler) Desc() string {
 	return "rate a user"
 }
 
-func (h PostRatingHandler) Params() interface{} {
+func (h PostRatingHandler) Params() any {
 	return &PostRatingParams{}
 }
 
-func (h PostRatingHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+func (h PostRatingHandler) Serve(req *http.Request, db *sqlx.DB, params any) (any, error) {
 	q := params.(*PostRatingParams)
 	if (q.Rating < 1) || (q.Rating > 5) {
 		return nil, BadRequest(errors.New("rating must be between 1 and 5, inclusive"))

@@ -12,7 +12,7 @@ import (
 // struct field names are the same as the names of the query values,
 // unless the fields have a "query" tag attached to them, in which
 // case the value of that tag is used instead.
-func parseQuery(query url.Values, into interface{}) error {
+func parseQuery(query url.Values, into any) error {
 	v := reflect.Indirect(reflect.ValueOf(into))
 	if (v.Kind() != reflect.Struct) || !v.CanAddr() {
 		return errors.New("invalid into value")

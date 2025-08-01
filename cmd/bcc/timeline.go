@@ -21,13 +21,13 @@ func (h GetTimelineHandler) Desc() string {
 	return "get a user's timeline"
 }
 
-func (h GetTimelineHandler) Params() interface{} {
+func (h GetTimelineHandler) Params() any {
 	return &GetTimelineParams{
 		Limit: 10,
 	}
 }
 
-func (h GetTimelineHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+func (h GetTimelineHandler) Serve(req *http.Request, db *sqlx.DB, params any) (any, error) {
 	q := params.(*GetTimelineParams)
 	if q.Limit > 100 {
 		return nil, BadRequest(errors.New("limit must not be larger than 100"))

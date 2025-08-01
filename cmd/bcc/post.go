@@ -20,11 +20,11 @@ func (h GetPostHandler) Desc() string {
 	return "get a post and its comments"
 }
 
-func (h GetPostHandler) Params() interface{} {
+func (h GetPostHandler) Params() any {
 	return &GetPostParams{}
 }
 
-func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params any) (any, error) {
 	q := params.(*GetPostParams)
 
 	post, err := bcc.GetPostByID(db, q.PostID)
@@ -43,9 +43,9 @@ func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}
 		PostedAt  time.Time `json:"posted_at"`
 		UpdatedAt time.Time `json:"updated_at"`
 
-		Title    string        `json:"title"`
-		Body     string        `json:"body"`
-		Comments []interface{} `json:"comments"`
+		Title    string `json:"title"`
+		Body     string `json:"body"`
+		Comments []any  `json:"comments"`
 	}{
 		UserID:    post.UserID,
 		PostedAt:  post.PostedAt,
@@ -60,7 +60,7 @@ func (h GetPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}
 
 		result.Comments = append(result.Comments, struct {
 			UserID    uint64    `json:"user_id"`
-			PostedAt  time.Time `"json:"posted_at"`
+			PostedAt  time.Time `json:"posted_at"`
 			UpdatedAt time.Time `json:"updated_at"`
 			ID        uint64    `json:"id"`
 			Message   string    `json:"message"`
@@ -91,11 +91,11 @@ func (h PostPostHandler) Desc() string {
 	return "create a new post"
 }
 
-func (h PostPostHandler) Params() interface{} {
+func (h PostPostHandler) Params() any {
 	return &PostPostParams{}
 }
 
-func (h PostPostHandler) Serve(req *http.Request, db *sqlx.DB, params interface{}) (interface{}, error) {
+func (h PostPostHandler) Serve(req *http.Request, db *sqlx.DB, params any) (any, error) {
 	q := params.(*PostPostParams)
 	if q.Title == "" {
 		return nil, BadRequest(errors.New("title must not be blank"))

@@ -60,7 +60,7 @@ func GetCommentsByPostID(db *sqlx.DB, postID uint64) (*Iterator, error) {
 
 	return &Iterator{
 		next: rows.Next,
-		cur: func() (interface{}, error) {
+		cur: func() (any, error) {
 			var comment Comment
 			err := rows.StructScan(&comment)
 			return comment, err

@@ -33,8 +33,8 @@ func (df *dataFlag) Set(val string) error {
 		*df = make(dataFlag)
 	}
 
-	pairs := strings.Split(val, ",")
-	for _, pair := range pairs {
+	pairs := strings.SplitSeq(val, ",")
+	for pair := range pairs {
 		split := strings.SplitN(pair, "=", 2)
 		if len(split) < 2 {
 			return fmt.Errorf("%q is not valid", pair)
